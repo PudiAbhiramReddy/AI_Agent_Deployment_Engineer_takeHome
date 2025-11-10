@@ -16,17 +16,57 @@ This document outlines the architecture and flow of the bedtime story generation
 Here is a text-based block diagram illustrating the interaction between the components.
   
 
-```mermaid
-graph TD;
-    A[User] -- "1. Provides story idea" --> B["Orchestrator (main.py)"];
-    B -- "2. Creates 'Storyteller Prompt'" --> C[Storyteller AI (LLM)];
-    C -- "3. Generates draft" --> B;
-    B -- "4. Sends draft for evaluation" --> D[Judge AI (LLM)];
-    D -- "5. Returns verdict" --> B;
-    B -- "6. Makes Decision" --> E{Verdict?};
-    E -- "6a. PASS" --> F["(END)<br>Display Final Story to User"];
-    E -- "6b. FAIL" --> G[Create 'Revision Prompt'];
-    G --> C;
+```text
+               ┌──────────┐
+               │   User   │
+               └──────────┘
+                    │
+                    │ 1. Provides a story idea.
+                    ▼
+          ┌──────────────────────┐
+          │ Orchestrator (`main.py`) │
+          └──────────────────────┘
+                    │
+                    │ 2. Creates and sends a "Storyteller Prompt".
+                    ▼
+     ┌────────────────────────┐
+     │  Storyteller AI (LLM)  │
+     └────────────────────────┘
+                    │
+    _               │ 3. Generates and returns the first story draft.
+                    ▼
+          ┌──────────────────────┐
+          │ Orchestrator (`main.py`) │
+          └──────────────────────┘
+                    │
+                    │ 4. Sends the story draft for evaluation.
+                    ▼
+          ┌───────────────────┐
+          │   Judge AI (LLM)  │
+        _ └───────────────────┘
+                    │
+                    │ 5. Returns a verdict ("PASS" or "FAIL") with a reason.
+                    ▼
+          ┌──────────────────────┐
+          │ Orchestrator (`main.py`) │
+          │                      │
+          │    Makes Decision    │
+          └──────────┬───────────┘
+                     │
+         ┌───────────┴───────────┐
+         │                       │
+         ▼                       ▼
+┌─────────────────┐     ┌──────────────────────────────────┐
+│    If "PASS"    │     │             If "FAIL"            │
+└─────────────────┘     └──────────────────────────────────┘
+         │       _               │
+         │ 6a. The final story   │ 6b. The Orchestrator creates a
+         │     is displayed      │     "Revision Prompt" using the
+         │     to the User.      │     Judge's feedback.
+         │                       │
+         ▼                       │
+       (END)                     └─────► (This loops back to the Storyteller)
+```
 
 
  
@@ -43,3 +83,4 @@ graph TD;
 6.  **Revision Loop:** The system uses a `REVISION_PROMPT_TEMPLATE`, which includes the original request, the failed story, and the Judge's feedback. It asks the **Storyteller** to rewrite the story, addressing the specific issues (like adding a magical detail). This new draft is then sent back to the **Judge** for re-evaluation (Step 3).
 
 7.  **Termination:** The loop continues for a set number of attempts. If a story doesn't pass after these attempts, the system informs the user that it could not generate a suitable story and shows the last failed draft.
+
