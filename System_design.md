@@ -17,17 +17,16 @@ Here is a text-based block diagram illustrating the interaction between the comp
   
 
 ```mermaid
-graph TD
-    A[User] -- "1. Provides story idea" --> B["Orchestrator (main.py)"]
-    B -- "2. Creates 'Storyteller Prompt'" --> C[Storyteller AI (LLM)]
-    C -- "3. Generates draft" --> B
-    B -- "4. Sends draft for evaluation" --> D[Judge AI (LLM)]
-    D -- "5. Returns verdict" --> B
-    B -- "6. Makes Decision" --> E{Verdict?}
-    E -- "6a. PASS" --> F["(END)<br>Display Final Story to User"]
-    E -- "6b. FAIL" --> G[Create 'Revision Prompt']
-    G --> C
-```
+graph TD;
+    A[User] -- "1. Provides story idea" --> B["Orchestrator (main.py)"];
+    B -- "2. Creates 'Storyteller Prompt'" --> C[Storyteller AI (LLM)];
+    C -- "3. Generates draft" --> B;
+    B -- "4. Sends draft for evaluation" --> D[Judge AI (LLM)];
+    D -- "5. Returns verdict" --> B;
+    B -- "6. Makes Decision" --> E{Verdict?};
+    E -- "6a. PASS" --> F["(END)<br>Display Final Story to User"];
+    E -- "6b. FAIL" --> G[Create 'Revision Prompt'];
+    G --> C;
 
 
  
@@ -42,4 +41,5 @@ graph TD
     *   If the verdict is **"PASS"**, the story is considered high-quality and is immediately shown to the user. The process ends successfully.
     *   If the verdict is **"FAIL"**, the Orchestrator captures the reason for failure (e.g., "the story is too generic").
 6.  **Revision Loop:** The system uses a `REVISION_PROMPT_TEMPLATE`, which includes the original request, the failed story, and the Judge's feedback. It asks the **Storyteller** to rewrite the story, addressing the specific issues (like adding a magical detail). This new draft is then sent back to the **Judge** for re-evaluation (Step 3).
+
 7.  **Termination:** The loop continues for a set number of attempts. If a story doesn't pass after these attempts, the system informs the user that it could not generate a suitable story and shows the last failed draft.
